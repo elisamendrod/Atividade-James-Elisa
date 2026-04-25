@@ -1,0 +1,17 @@
+package br.com.fatec.catalogo.repositories;
+
+import br.com.fatec.catalogo.models.ProdutoModel;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface ProdutoRepository extends JpaRepository<ProdutoModel, Long> {
+
+    // Busca por nome (case insensitive)
+    List<ProdutoModel> findByNomeContainingIgnoreCase(String nome);
+    List<ProdutoModel> findByCategoriaId(Long categoriaId);
+    boolean existsByNome(String nome);
+}
+

@@ -1,0 +1,323 @@
+```html
+<!DOCTYPE html>
+<html lang="pt-br"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Produtos</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <style>
+
+        *{
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body{
+            background:#f4f6f9;
+            color:#1f2937;
+        }
+
+        .navbar{
+            background:white!important;
+            box-shadow:0 2px 10px rgba(0,0,0,0.05);
+            padding:15px 0;
+        }
+
+        .navbar-brand{
+            color:#111827!important;
+            font-weight:700;
+            font-size:1.3rem;
+        }
+
+        .card{
+            border:none;
+            border-radius:18px;
+            box-shadow:0 4px 18px rgba(0,0,0,0.06);
+            background:white;
+        }
+
+        .form-control,
+        .form-select{
+            border-radius:12px;
+            border:1px solid #d1d5db;
+            padding:12px;
+        }
+
+        .form-control:focus,
+        .form-select:focus{
+            border-color:#22c55e;
+            box-shadow:0 0 0 0.15rem rgba(34,197,94,0.15);
+        }
+
+        .filters{
+            display:flex;
+            gap:12px;
+            align-items:center;
+            margin-bottom:20px;
+        }
+
+        .filters .form-control{
+            flex:2;
+        }
+
+        .filters .form-select{
+            flex:1;
+        }
+
+        .btn-dark-blue{
+            background:#22c55e;
+            border:none;
+            border-radius:12px;
+            padding:10px 18px;
+            color:white;
+            font-weight:600;
+            transition:0.2s;
+        }
+
+        .btn-dark-blue:hover{
+            background:#16a34a;
+            color:white;
+        }
+
+        .btn-success{
+            background:#22c55e;
+            border:none;
+            border-radius:12px;
+            font-weight:600;
+            padding:10px 18px;
+        }
+
+        .btn-success:hover{
+            background:#16a34a;
+        }
+
+        .btn-outline-light{
+            border:1px solid #d1d5db;
+            color:#111827;
+            border-radius:12px;
+        }
+
+        .btn-outline-light:hover{
+            background:#f3f4f6;
+            color:#111827;
+        }
+
+        .btn-danger{
+            border-radius:12px;
+        }
+
+        table{
+            border-radius:12px;
+            overflow:hidden;
+        }
+
+        thead{
+            background:#f9fafb;
+        }
+
+        th{
+            color:#374151;
+            font-weight:600;
+        }
+
+        tbody tr{
+            transition:0.2s;
+        }
+
+        tbody tr:hover{
+            background:#f9fafb;
+        }
+
+        .table-danger{
+            background:#f0fdf4!important;
+        }
+
+        td, th{
+            vertical-align:middle;
+        }
+
+        .btn-sm{
+            border-radius:10px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg mb-4">
+
+    <div class="container d-flex justify-content-between">
+
+        <a class="navbar-brand" href="/produtos">
+            Gerenciador de Catálogo
+        </a>
+
+        <div class="d-flex align-items-center gap-2">
+
+            <span sec:authorize="isAuthenticated()"
+                  class="text-dark">
+
+                Usuário:
+                <strong>
+                    <span sec:authentication="name"></span>
+                </strong>
+
+            </span>
+
+            <a href="/dashboard"
+               class="btn btn-outline-light">
+                Dashboard
+            </a>
+
+            <a sec:authorize="!isAuthenticated()"
+               href="/login"
+               class="btn btn-outline-light">
+                Entrar
+            </a>
+
+            <form sec:authorize="isAuthenticated()"
+                  th:action="@{/logout}"
+                  method="post"
+                  style="display:inline;">
+
+                <button type="submit"
+                        class="btn btn-danger">
+                    Sair
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</nav>
+
+<div class="container">
+
+    <div class="card p-4">
+
+        <!-- BOTÃO ADMIN -->
+        <div sec:authorize="hasRole('ADMIN')" class="mb-4">
+
+            <a href="/produtos/novo"
+               class="btn btn-success">
+                Novo Produto
+            </a>
+
+        </div>
+
+        <!-- FILTROS -->
+        <form method="get"
+              action="/produtos"
+              class="filters">
+
+            <input type="text"
+                   name="nome"
+                   class="form-control"
+                   placeholder="Buscar produto..."
+                   th:value="${param.nome}">
+
+            <select name="categoria"
+                    class="form-select">
+
+                <option value="">
+                    Todas Categorias
+                </option>
+
+                <option th:each="c : ${categorias}"
+                        th:value="${c.id}"
+                        th:text="${c.nome}">
+                </option>
+
+            </select>
+
+            <button type="submit"
+                    class="btn btn-dark-blue">
+                Filtrar
+            </button>
+
+        </form>
+
+        <!-- TABELA -->
+        <table class="table table-hover align-middle">
+
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome do Produto</th>
+                <th>Preço (R$)</th>
+                <th>Categoria</th>
+                <th>Data de Cadastro</th>
+
+                <th class="text-center"
+                    sec:authorize="hasRole('ADMIN')">
+                    Ações
+                </th>
+            </tr>
+            </thead>
+
+            <tbody>
+
+            <tr th:each="p : ${produtos}"
+                th:classappend="${p.valor.doubleValue() > 1000} ? 'table-danger'">
+
+                <td th:text="${p.idProduto}"></td>
+
+                <td th:text="${p.nome}"></td>
+
+                <td th:text="${#numbers.formatDecimal(p.valor, 1, 'POINT', 2, 'COMMA')}"></td>
+
+                <td th:text="${p.categoria.nome}"></td>
+
+                <td th:text="${#temporals.format(p.dataCadastro, 'dd/MM/yyyy HH:mm')}"></td>
+
+                <td class="text-center"
+                    sec:authorize="hasRole('ADMIN')">
+
+                    <a th:href="@{/produtos/editar/{id}(id=${p.idProduto})}"
+                       class="btn btn-sm btn-dark-blue">
+                        Editar
+                    </a>
+
+                    <a th:href="@{/produtos/excluir/{id}(id=${p.idProduto})}"
+                       class="btn btn-sm btn-danger"
+                       onclick="return confirm('Tem certeza que deseja remover este produto?')">
+
+                        Excluir
+
+                    </a>
+
+                </td>
+
+            </tr>
+
+            </tbody>
+
+        </table>
+
+        <div th:if="${#lists.isEmpty(produtos)}"
+             class="alert alert-light text-center mt-3">
+
+            Nenhum produto cadastrado no momento.
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
+```
